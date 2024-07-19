@@ -15,3 +15,5 @@ Cargo.lock
 
 **/cache/
 **/out/
+
+.vscode
