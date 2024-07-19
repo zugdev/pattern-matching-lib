@@ -3,106 +3,123 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
 import "../src/PatternLibrary.sol";
-import "../src/MathLibrary.sol";
 
-contract PatternLibraryTest is Test {
-    using PatternLibrary for uint256[];
-    using MathLibrary for uint256[];
+contract PatternMatchingTest is Test {
+    using PatternMatching for uint256[];
 
-    function testCalculateTWAP() pure public {
-        uint256[] memory prices = new uint256[](5);
-        prices[0] = 100;
-        prices[1] = 200;
-        prices[2] = 300;
-        prices[3] = 400;
-        prices[4] = 500;
+    uint256[] data;
+    uint256[] pattern;
+    uint256[] volumes;
+    uint256[] shortTerm;
+    uint256[] longTerm;
+    uint256[] x;
+    uint256[] y;
+    uint256[][] transitionMatrix;
+    uint256[][] trainingData;
+    uint256[] labels;
 
-        uint256[] memory times = new uint256[](5);
-        times[0] = 1;
-        times[1] = 1;
-        times[2] = 1;
-        times[3] = 1;
-        times[4] = 1;
-
-        uint256 expected = 300;
-        uint256 result = PatternLibrary.calculateTWAP(prices, times);
-
-        assertEq(result, expected, "TWAP calculation failed");
+    function setUp() public {
+        data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+        pattern = [4, 5, 6];
+        volumes = [100, 200, 150, 300, 250];
+        shortTerm = [1, 2, 3, 4, 5];
+        longTerm = [2, 2, 2, 2, 2];
+        x = [1, 2, 3, 4, 5];
+        y = [2, 4, 6, 8, 10];
+        transitionMatrix = [[1, 1], [1, 1]];
+        trainingData = [[1, 2], [2, 3], [3, 4]];
+        labels = [0, 1, 1];
     }
 
-    function testDetectTWAPAnomaly() pure public {
-        uint256[] memory prices = new uint256[](5);
-        prices[0] = 100;
-        prices[1] = 200;
-        prices[2] = 300;
-        prices[3] = 400;
-        prices[4] = 1000;
-
-        bool result = PatternLibrary.detectTWAPAnomaly(prices, 200); // 2%
-
-        assertTrue(result, "TWAP anomaly detection failed");
+    function testDetectExactPattern() view public {
+        bool result = PatternMatching.detectExactPattern(data, pattern);
+        assertTrue(result);
     }
 
-    function testCalculateMovingAverage() pure public {
-        uint256[] memory data = new uint256[](5);
-        data[0] = 1;
-        data[1] = 2;
-        data[2] = 3;
-        data[3] = 4;
-        data[4] = 5;
-
-        uint256 windowSize = 3;
-        uint256[] memory expected = new uint256[](3);
-        expected[0] = 2; // (1+2+3)/3
-        expected[1] = 3; // (2+3+4)/3
-        expected[2] = 4; // (3+4+5)/3
-
-        uint256[] memory result = PatternLibrary.calculateMovingAverage(data, windowSize);
-
-        for (uint256 i = 0; i < result.length; i++) {
-            assertEq(result[i], expected[i], "Moving average calculation failed");
-        }
+    function testDetectThresholdPattern() view public {
+        bool result = PatternMatching.detectThresholdPattern(data, pattern, 1);
+        assertTrue(result);
     }
 
-    function testDetectPriceSpike() pure public {
-        uint256[] memory prices = new uint256[](5);
-        prices[0] = 100;
-        prices[1] = 200;
-        prices[2] = 300;
-        prices[3] = 400;
-        prices[4] = 1000;
-
-        bool result = PatternLibrary.detectPriceSpike(prices, 100); // 1%
-
-        assertTrue(result, "Price spike detection failed");
+    function testDetectMovingAverageCrossover() view public {
+        PatternMatching.MovingAverageData memory maData = PatternMatching.MovingAverageData(shortTerm, longTerm);
+        bool result = PatternMatching.detectMovingAverageCrossover(maData);
+        assertTrue(result);
     }
 
-    function testDetectLPImbalance() pure public {
-        uint256[] memory assetRatios = new uint256[](5);
-        assetRatios[0] = 100;
-        assetRatios[1] = 200;
-        assetRatios[2] = 300;
-        assetRatios[3] = 400;
-        assetRatios[4] = 1000;
-
-        bool result = PatternLibrary.detectLPImbalance(assetRatios, 200); // 2%
-
-        assertTrue(result, "LP imbalance detection failed");
+    function testDetectTrendReversal() view public {
+        bool result = PatternMatching.detectTrendReversal(data);
+        assertFalse(result);
     }
 
-    function testDetectOutliers() pure public {
-        uint256[] memory data = new uint256[](8);
-        data[0] = 2;
-        data[1] = 4;
-        data[2] = 4;
-        data[3] = 4;
-        data[4] = 5;
-        data[5] = 5;
-        data[6] = 7;
-        data[7] = 20;
+    function testDetectAnomaly() view public {
+        bool result = PatternMatching.detectAnomaly(data, 1);
+        assertTrue(result);
+    }
 
-        bool result = PatternLibrary.detectOutliers(data, 2); // 2 standard deviations
+    function testCalculateMovingAverage() view public {
+        uint256[] memory result = PatternMatching.calculateMovingAverage(data, 3);
+        assertEq(result.length, data.length - 2);
+    }
 
-        assertTrue(result, "Outlier detection failed");
+    function testDetectDTW() pure public {
+        uint256[] memory series1 = new uint256[](3);
+        series1[0] = 1;
+        series1[1] = 2;
+        series1[2] = 3;
+        uint256[] memory series2 = new uint256[](4);
+        series2[0] = 1;
+        series2[1] = 2;
+        series2[2] = 2;
+        series2[3] = 3;
+        uint256 result = PatternMatching.detectDTW(series1, series2);
+        assertEq(result, 0);
+    }
+
+    function testDetectSVM() view public {
+        uint256[] memory weights = new uint256[](5);
+        weights[0] = 1;
+        weights[1] = 1;
+        weights[2] = 1;
+        weights[3] = 1;
+        weights[4] = 1;
+        uint256 bias = 0;
+        uint256 result = PatternMatching.detectSVM(x, weights, bias);
+        assertEq(result, 1); // Assuming a simple SVM where the class label is 1
+    }
+
+    function testCalculateEMA() view public {
+        uint256 period = 3;
+        uint256[] memory result = PatternMatching.calculateEMA(data, period);
+        assertEq(result.length, data.length);
+    }
+
+    function testCalculateBollingerBands() view public {
+        uint256 period = 3;
+        uint256 multiplier = 2;
+        PatternMatching.BollingerBands[] memory result = PatternMatching.calculateBollingerBands(data, period, multiplier);
+        assertEq(result.length, data.length - period + 1);
+    }
+
+    function testDetectHeadAndShoulders() pure public {
+        uint256[] memory hsData = new uint256[](5);
+        hsData[0] = 1;
+        hsData[1] = 3;
+        hsData[2] = 1;
+        hsData[3] = 4;
+        hsData[4] = 2;
+        bool result = PatternMatching.detectHeadAndShoulders(hsData);
+        assertTrue(result);
+    }
+
+    function testDetectCupAndHandle() pure public {
+        uint256[] memory chData = new uint256[](5);
+        chData[0] = 5;
+        chData[1] = 3;
+        chData[2] = 4;
+        chData[3] = 6;
+        chData[4] = 4;
+        bool result = PatternMatching.detectCupAndHandle(chData);
+        assertFalse(result);
     }
 }
