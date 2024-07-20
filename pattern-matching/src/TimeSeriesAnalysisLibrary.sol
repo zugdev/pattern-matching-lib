@@ -5,7 +5,7 @@ import "./MathLibrary.sol";
 
 /**
  * @title TimeSeriesAnalysis
- * @dev Library for advanced time series analysis including AR, ADF, STL...
+ * @dev Library for advanced time series analysis including AR, ADF, STL, and more.
  */
 library TimeSeriesAnalysis {
 
@@ -20,6 +20,7 @@ library TimeSeriesAnalysis {
 
     /**
      * @notice Autoregressive Model (AR)
+     * @dev Predicts future values based on past values in the time series. This is useful in finance for modeling and forecasting stock prices.
      * @param data The input time series data.
      * @param p The order of the autoregressive model.
      * @return predictions The predicted values based on the AR model.
@@ -40,6 +41,7 @@ library TimeSeriesAnalysis {
 
     /**
      * @notice Compute lagged values
+     * @dev Useful for creating lag features in time series data, which can be used in various statistical models.
      * @param data The input time series data.
      * @param lag The lag period.
      * @return lagged The lagged values.
@@ -55,6 +57,7 @@ library TimeSeriesAnalysis {
 
     /**
      * @notice Compute lagged differences
+     * @dev This is used to transform a non-stationary time series into a stationary one by calculating differences between consecutive values.
      * @param data The input time series data.
      * @param lag The lag period.
      * @return differences The lagged differences.
@@ -70,6 +73,7 @@ library TimeSeriesAnalysis {
 
     /**
      * @notice Compute autocorrelation
+     * @dev Measures the linear relationship between lagged values of the time series, useful for identifying repeating patterns or cycles.
      * @param data The input time series data.
      * @param lag The lag period.
      * @return autocorr The autocorrelation value.
@@ -90,6 +94,7 @@ library TimeSeriesAnalysis {
 
     /**
      * @notice Compute partial autocorrelation (simplified)
+     * @dev Measures the linear relationship between lagged values of the time series, controlling for the values at all shorter lags.
      * @param data The input time series data.
      * @param lag The lag period.
      * @return pacf The partial autocorrelation value.
@@ -114,6 +119,7 @@ library TimeSeriesAnalysis {
 
     /**
      * @notice Augmented Dickey-Fuller Test (simplified)
+     * @dev Tests whether a time series is stationary or not. Stationarity is a key assumption in many time series models.
      * @param data The input time series data.
      * @param lag The lag period.
      * @return isStationary Boolean indicating if the series is stationary.
@@ -132,6 +138,7 @@ library TimeSeriesAnalysis {
 
     /**
      * @notice Seasonal Decomposition of Time Series (STL)
+     * @dev Decomposes a time series into trend, seasonal, and residual components. Useful for understanding underlying patterns.
      * @param data The input time series data.
      * @param seasonLength The length of the seasonality period.
      * @return components The decomposed components (trend, seasonal, residual).
@@ -157,6 +164,7 @@ library TimeSeriesAnalysis {
 
     /**
      * @notice Calculate moving average
+     * @dev Smooths out short-term fluctuations and highlights longer-term trends or cycles. Commonly used in financial markets to analyze stock prices.
      * @param data The input time series data.
      * @param windowSize The size of the moving average window.
      * @return movAvg The calculated moving average values.
