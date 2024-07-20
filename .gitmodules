@@ -25,3 +25,6 @@
 [submodule "bridges/nomad/lib/forge-std"]
 	path = bridges/nomad/lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
+[submodule "pattern-matching/lib/forge-std"]
+	path = pattern-matching/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
