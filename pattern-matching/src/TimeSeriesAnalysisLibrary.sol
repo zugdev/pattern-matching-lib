@@ -192,7 +192,7 @@ library TimeSeriesAnalysis {
     function fft(int256[] memory real, int256[] memory imag) public pure returns (int256[] memory, int256[] memory) {
         uint256 n = real.length;
         require(n == imag.length, "Input arrays must have the same length");
-        require(n & (n - 1) == 0, "Input array length must be a power of 2");
+        require(n > 0 && (n & (n - 1)) == 0, "Input array length must be a power of 2");
 
         for (uint256 i = 0; i < n; i++) {
             uint256 j = reverseBits(i, log2(n));
@@ -240,7 +240,8 @@ library TimeSeriesAnalysis {
 
     function log2(uint256 x) internal pure returns (uint256) {
         uint256 result = 0;
-        while (x >>= 1 != 0) {
+        while (x > 1) {
+            x >>= 1;
             result++;
         }
         return result;
