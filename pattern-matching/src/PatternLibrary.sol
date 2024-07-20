@@ -12,6 +12,7 @@ library PatternMatching {
 
     /**
      * @notice Detect an exact pattern within the data.
+     * @dev This function scans through the data to find an exact match for the given pattern. Useful for identifying predefined sequences in time series data.
      */
     function detectExactPattern(uint256[] memory data, uint256[] memory pattern) public pure returns (bool) {
         require(data.length >= pattern.length, "Insufficient data length");
@@ -32,6 +33,7 @@ library PatternMatching {
 
     /**
      * @notice Detect a pattern within the data allowing for a threshold of variance.
+     * @dev This function identifies patterns that match within a certain threshold, useful for detecting similar but not identical sequences.
      */
     function detectThresholdPattern(uint256[] memory data, uint256[] memory pattern, uint256 threshold) public pure returns (bool) {
         require(data.length >= pattern.length, "Insufficient data length");
@@ -58,6 +60,7 @@ library PatternMatching {
 
     /**
      * @notice Detect a moving average crossover.
+     * @dev This function checks for a crossover between short-term and long-term moving averages, a common indicator in financial analysis for signaling potential buy/sell points.
      */
     function detectMovingAverageCrossover(MovingAverageData memory maData) public pure returns (bool) {
         require(maData.shortTerm.length == maData.longTerm.length, "Data arrays must have the same length");
@@ -74,6 +77,7 @@ library PatternMatching {
 
     /**
      * @notice Detect a volume spike in the data.
+     * @dev Identifies significant increases in volume, can indicate strong market interest / whales trade.
      */
     function detectVolumeSpike(uint256[] memory volumes, uint256 threshold) public pure returns (bool) {
         for (uint256 i = 1; i < volumes.length; i++) {
@@ -86,6 +90,7 @@ library PatternMatching {
 
     /**
      * @notice Detect a trend reversal (simplified double top pattern).
+     * @dev This function looks for a double top pattern, which can signal a potential reversal in the current trend.
      */
     function detectTrendReversal(uint256[] memory data) public pure returns (bool) {
         require(data.length >= 3, "Insufficient data length");
@@ -99,6 +104,7 @@ library PatternMatching {
 
     /**
      * @notice Detect anomalies in the data based on deviation from the mean.
+     * @dev This function identifies data points that deviate significantly from the mean, useful for outlier detection.
      */
     function detectAnomaly(uint256[] memory data, uint256 deviation) public pure returns (bool) {
         uint256 meanValue = data.mean();
@@ -113,6 +119,7 @@ library PatternMatching {
 
     /**
      * @notice Calculate the moving average of the data.
+     * @dev Computes the moving average over a specified window size, smoothing out short-term fluctuations to highlight longer-term trends.
      */
     function calculateMovingAverage(uint256[] memory data, uint256 windowSize) public pure returns (uint256[] memory) {
         require(data.length >= windowSize, "Insufficient data length");
@@ -129,6 +136,7 @@ library PatternMatching {
 
     /**
      * @notice Detect sequences in data using a simplified Hidden Markov Model (HMM).
+     * @dev Uses a transition matrix to model state transitions in the data sequence, useful for identifying hidden states and predicting future states.
      */
     function detectHMM(uint256[] memory data, uint256[] memory states, uint256[][] memory transitionMatrix) public pure returns (bool) {
         require(data.length == states.length, "Data and states length mismatch");
@@ -144,6 +152,7 @@ library PatternMatching {
 
     /**
      * @notice Detect patterns using a simplified K-Nearest Neighbors (KNN) algorithm.
+     * @dev Classifies data points based on their distance to the nearest neighbors in the training set, useful for pattern recognition and anomaly detection.
      */
     function detectKNN(uint256[] memory data, uint256[][] memory trainingData, uint256[] memory labels, uint256 k) public pure returns (uint256) {
         require(data.length == trainingData[0].length, "Data length mismatch");
@@ -155,23 +164,24 @@ library PatternMatching {
             }
             distances[i] = distance;
         }
-        uint256[] memory sortedIndices = sortIndices(distances);
-        return getMostFrequentLabel(sortedIndices, labels, k);
+        uint256[] memory sortedIndexes = sortIndexes(distances);
+        return getMostFrequentLabel(sortedIndexes, labels, k);
     }
 
     /**
-     * @notice Sort indices based on distances.
+     * @notice Sort indexes based on distances.
+     * @dev Helper function to sort indexes of an array based on their corresponding values in another array.
      */
-    function sortIndices(uint256[] memory distances) internal pure returns (uint256[] memory) {
-        uint256[] memory indices = new uint256[](distances.length);
+    function sortIndexes(uint256[] memory distances) internal pure returns (uint256[] memory) {
+        uint256[] memory indexes = new uint256[](distances.length);
         for (uint256 i = 0; i < distances.length; i++) {
-            indices[i] = i;
+            indexes[i] = i;
         }
-        quickSort(distances, indices, int(0), int(distances.length - 1));
-        return indices;
+        quickSort(distances, indexes, int(0), int(distances.length - 1));
+        return indexes;
     }
 
-    function quickSort(uint256[] memory distances, uint256[] memory indices, int left, int right) internal pure {
+    function quickSort(uint256[] memory distances, uint256[] memory indexes, int left, int right) internal pure {
         int i = left;
         int j = right;
         if (i == j) return;
@@ -181,19 +191,19 @@ library PatternMatching {
             while (pivot < distances[uint(j)]) j--;
             if (i <= j) {
                 (distances[uint(i)], distances[uint(j)]) = (distances[uint(j)], distances[uint(i)]);
-                (indices[uint(i)], indices[uint(j)]) = (indices[uint(j)], indices[uint(i)]);
+                (indexes[uint(i)], indexes[uint(j)]) = (indexes[uint(j)], indexes[uint(i)]);
                 i++;
                 j--;
             }
         }
-        if (left < j) quickSort(distances, indices, left, j);
-        if (i < right) quickSort(distances, indices, i, right);
+        if (left < j) quickSort(distances, indexes, left, j);
+        if (i < right) quickSort(distances, indexes, i, right);
     }
 
-    function getMostFrequentLabel(uint256[] memory sortedIndices, uint256[] memory labels, uint256 k) internal pure returns (uint256) {
-        uint256[] memory frequency = new uint256[](10); // Assume labels range from 0 to 9
+    function getMostFrequentLabel(uint256[] memory sortedIndexes, uint256[] memory labels, uint256 k) internal pure returns (uint256) {
+        uint256[] memory frequency = new uint256[](10) ; // Assume labels range from 0 to 9 (dec base) can add a parameter for that tho
         for (uint256 i = 0; i < k; i++) {
-            frequency[labels[sortedIndices[i]]]++;
+            frequency[labels[sortedIndexes[i]]]++;
         }
         uint256 maxFreq = 0;
         uint256 label = 0;
@@ -208,6 +218,7 @@ library PatternMatching {
 
     /**
      * @notice Detect patterns using Dynamic Time Warping (DTW).
+     * @dev Measures similarity between two time series by aligning them with minimum distance, useful for pattern recognition in time series data.
      */
     function detectDTW(uint256[] memory series1, uint256[] memory series2) public pure returns (uint256) {
         uint256 n = series1.length;
@@ -235,6 +246,7 @@ library PatternMatching {
 
     /**
      * @notice Calculate the correlation between two data sets.
+     * @dev Measures the strength and direction of the linear relationship between two variables. Useful for identifying relationships in financial and scientific data.
      */
     function correlation(uint256[] memory x, uint256[] memory y) public pure returns (uint256) {
         require(x.length == y.length, "Arrays must be of the same length");
@@ -253,6 +265,7 @@ library PatternMatching {
 
     /**
      * @notice Calculate the covariance between two data sets.
+     * @dev Measures the joint variability of two random variables. Useful for identifying the relationship between the performance of two assets in finance.
      */
     function covariance(uint256[] memory x, uint256[] memory y) public pure returns (uint256) {
         require(x.length == y.length, "Arrays must be of the same length");
@@ -267,6 +280,7 @@ library PatternMatching {
 
     /**
      * @notice Detect patterns using a simplified Support Vector Machines (SVM) algorithm.
+     * @dev Classifies data points by finding the optimal hyperplane that separates different classes. Useful for binary classification problems.
      */
     function detectSVM(uint256[] memory data, uint256[] memory weights, uint256 bias) public pure returns (uint256) {
         require(data.length == weights.length, "Data and weights length mismatch");
@@ -279,6 +293,7 @@ library PatternMatching {
 
     /**
      * @notice Calculate the Exponential Moving Average (EMA) of the data.
+     * @dev Smooths out data by applying more weight to recent observations. Commonly used in financial analysis to track stock prices.
      */
     function calculateEMA(uint256[] memory data, uint256 period) public pure returns (uint256[] memory) {
         require(data.length >= period, "Insufficient data length");
@@ -300,6 +315,7 @@ library PatternMatching {
 
     /**
      * @notice Calculate Bollinger Bands for the data.
+     * @dev Uses moving averages and standard deviations to identify overbought or oversold conditions. Commonly used in financial markets.
      */
     function calculateBollingerBands(uint256[] memory data, uint256 period, uint256 multiplier) public pure returns (BollingerBands[] memory) {
         require(data.length >= period, "Insufficient data length");
@@ -320,6 +336,7 @@ library PatternMatching {
 
     /**
      * @notice Detect Head and Shoulders pattern in the data.
+     * @dev Identifies the head and shoulders pattern, which signals a potential reversal from a bullish to a bearish trend.
      */
     function detectHeadAndShoulders(uint256[] memory data) public pure returns (bool) {
         require(data.length >= 5, "Insufficient data length");
@@ -333,6 +350,7 @@ library PatternMatching {
 
     /**
      * @notice Detect Cup and Handle pattern in the data.
+     * @dev Identifies the cup and handle pattern, which signals a potential continuation of an upward trend.
      */
     function detectCupAndHandle(uint256[] memory data) public pure returns (bool) {
         require(data.length >= 4, "Insufficient data length");
